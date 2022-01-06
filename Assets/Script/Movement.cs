@@ -2,42 +2,90 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
-    [SerializeField]
-    private CharacterController _characterController;
+    [SerializeField] private CharacterController _characterController;
+    [SerializeField] private Animator _animatorController;
+    [SerializeField] private Transform _playerTransform;
+    [SerializeField] private Transform _camera;
+    [SerializeField] private FixedJoystick _joystick;
 
-    [SerializeField]
-    private Animator _animatorController;
-
-    [SerializeField]
-    private Transform _playerTransform;
-
-    [SerializeField]
-    private Transform _camera;
+    public float _walkSpeend;
+    public float _runningSpeed;
+    public float _directionSpeed;
+    public float _mass;
+    public float _jumpForce;
+    public bool _isRun = false;
+    public bool _isMobile;
 
     private Vector3 _moveDirection;
-
-    public float _speendWalk;
-    public float _speendRunning;
-    public float _speedDirection;
-    public float _mass;
+    private float horizontalInput = 0f;
+    private float verticalInput = 0f;
 
     void Update()
     {
         Move();
         MassCharacter();
-        AnimationMovement();
+        Jump();
     }
 
     void Move()
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-        Vector3 move = new Vector3(horizontal, 0f, vertical).normalized;
-
-        if (move.magnitude >= 0.1f)
+        horizontalInput = 0; Input.GetAxisRaw("Horizontal");
+        verticalInput = 0; Input.GetAxisRaw("Vertical");
+        
+        if(_isMobile)
         {
-            _moveDirection = Direction(horizontal, vertical);
-            _characterController.Move(_moveDirection.normalized * Time.deltaTime * _speendWalk);
+            horizontalInput = _joystick.Horizontal;
+            verticalInput = _joystick.Vertical;
+        } 
+        else
+        {
+            horizontalInput = Input.GetAxisRaw("Horizontal");
+            verticalInput = Input.GetAxisRaw("Vertical");
+        }
+
+        Debug.Log(_characterController.isGrounded);
+
+        if (horizontalInput != 0 || verticalInput != 0 && _characterController.isGrounded)
+        {
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                Run(horizontalInput, verticalInput);
+            }
+            else
+            {
+                Walk(horizontalInput, verticalInput);
+            }
+        }
+        RunAnimation();
+        WalkAnimation();
+    }
+
+    void Walk(float horizontalInput, float verticalInput)
+    {
+        _moveDirection = Direction(horizontalInput, verticalInput);
+        _characterController.Move(_moveDirection.normalized * Time.deltaTime * _walkSpeend);
+    }
+
+    void Run(float horizontalInput, float verticalInput)
+    {
+        _moveDirection = Direction(horizontalInput, verticalInput);
+        _characterController.Move(_moveDirection.normalized * Time.deltaTime * _runningSpeed);
+    }
+
+    Vector3 Direction(float horizontal, float vertical)
+    {
+        float targeAngle = Mathf.Atan2(horizontal, vertical) * Mathf.Rad2Deg + _camera.eulerAngles.y;
+        Quaternion direction = Quaternion.Euler(0f, targeAngle, 0f);
+        _playerTransform.rotation = Quaternion.Slerp(_playerTransform.rotation, direction, Time.deltaTime * _directionSpeed);
+        return direction * Vector3.forward;
+    }
+
+    void Jump()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            _moveDirection.y = Mathf.Sqrt(_jumpForce * _mass);
+            JumpAnimation();
         }
     }
 
@@ -46,44 +94,53 @@ public class Movement : MonoBehaviour
         _characterController.Move(Vector3.down * Time.deltaTime * _mass);
     }
 
-    Vector3 Direction(float horizontal, float vertical)
+    void RunAnimation()
     {
-        float targeAngle = Mathf.Atan2(horizontal, vertical) * Mathf.Rad2Deg + _camera.eulerAngles.y;
-        Quaternion direction = Quaternion.Euler(0f, targeAngle, 0f);
-        _playerTransform.rotation = Quaternion.Slerp(_playerTransform.rotation, direction, Time.deltaTime * _speedDirection);
-        return direction * Vector3.forward;
-    }
-
-    void AnimationMovement()
-    {
-        if (
-            Input.GetKey(KeyCode.W) ||
-            Input.GetKey(KeyCode.S) ||
-            Input.GetKey(KeyCode.A) ||
-            Input.GetKey(KeyCode.D)
-            )
+        if (horizontalInput != 0 || verticalInput != 0)
         {
-            _animatorController.SetBool("walking", true);
-        } 
-        else
-        {
-            _animatorController.SetBool("walking", false);
-        }
-
-        if (
-            Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.LeftShift) ||
-            Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.LeftShift) ||
-            Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.LeftShift) ||
-            Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.LeftShift)
-            )
-        {
-            _animatorController.SetBool("run", true);
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                _animatorController.SetBool("run", true);
+                SlideAnimation();
+            }
         }
         else
         {
             _animatorController.SetBool("run", false);
         }
+    }
 
+    void WalkAnimation()
+    {
+        if (horizontalInput != 0 || verticalInput != 0)
+        {
+            _animatorController.SetBool("walking", true);
+        }
+        else 
+        {
+            _animatorController.SetBool("walking", false);
+        }
+    }
+
+    void JumpAnimation()
+    {
+        _animatorController.SetBool("jump", true);
+    }
+
+    void SlideAnimation()
+    {
         if (Input.GetKey(KeyCode.E)) _animatorController.SetBool("slide", true);
+    }
+
+    void EmoticonAnimation()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            _animatorController.SetFloat("emoticon", 1);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            _animatorController.SetFloat("emoticon", 2);
+        }
     }
 }
