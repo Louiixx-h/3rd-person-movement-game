@@ -12,7 +12,6 @@ public class Movement : MonoBehaviour
     public float _runningSpeed;
     public float _directionSpeed;
     public float _mass;
-    public float _jumpForce;
     public bool _isRun = false;
     public bool _isMobile;
 
@@ -28,10 +27,7 @@ public class Movement : MonoBehaviour
     }
 
     void Move()
-    {
-        horizontalInput = 0; Input.GetAxisRaw("Horizontal");
-        verticalInput = 0; Input.GetAxisRaw("Vertical");
-        
+    {        
         if(_isMobile)
         {
             horizontalInput = _joystick.Horizontal;
@@ -43,9 +39,7 @@ public class Movement : MonoBehaviour
             verticalInput = Input.GetAxisRaw("Vertical");
         }
 
-        Debug.Log(_characterController.isGrounded);
-
-        if (horizontalInput != 0 || verticalInput != 0 && _characterController.isGrounded)
+        if (horizontalInput != 0 || verticalInput != 0)
         {
             if (Input.GetKey(KeyCode.LeftShift))
             {
@@ -84,7 +78,6 @@ public class Movement : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            _moveDirection.y = Mathf.Sqrt(_jumpForce * _mass);
             JumpAnimation();
         }
     }
@@ -130,17 +123,5 @@ public class Movement : MonoBehaviour
     void SlideAnimation()
     {
         if (Input.GetKey(KeyCode.E)) _animatorController.SetBool("slide", true);
-    }
-
-    void EmoticonAnimation()
-    {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            _animatorController.SetFloat("emoticon", 1);
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            _animatorController.SetFloat("emoticon", 2);
-        }
     }
 }
