@@ -12,4 +12,4 @@ Este protótipo de jogo em terceira pessoa tem como objetivo recriar as mecânic
 - [x] Direção do personagem segue o da câmera
 
 ### 👇Clique na imagem para assistir a o vídeo.
-[![Assista a o vídeo!](https://img.youtube.com/vi/1oIvTcoa22U/maxresdefault.jpg)](https://www.youtu.be/1oIvTcoa22U)
+[![Assista a o vídeo!](https://img.youtube.com/vi/1oIvTcoa22U/maxresdefault.jpg)](https://youtu.be/1oIvTcoa22U)
